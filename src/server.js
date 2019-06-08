@@ -18,7 +18,7 @@ const start = async ({ events }) => {
   const server = fastify()
   server.register(api) // API
   server.register(ws({ subscribe, unsubscribe })) // WebSocket
-  server.register(sse({ subscribe, unsubscribe })) // Server Side Events
+  server.register(sse({ subscribe, unsubscribe })) // Server-Sent Events
 
   // Handle Not Found
   server.get('/*', (request, reply) => {

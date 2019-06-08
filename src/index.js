@@ -30,6 +30,7 @@ const start = async () => {
   try {
     // Start server
     const app = await server.start({ events })
+
     events.emit('server:ready', { app })
   } catch (err) {
     error.handle(err)
