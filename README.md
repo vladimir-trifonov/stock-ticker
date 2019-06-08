@@ -62,7 +62,7 @@ Send the following message to unsubscribe:
 
 Example message:
 ```
-{"event": "subscribe", "symbol": "{tETHBTC}"}
+{"event": "subscribe", "symbol": "tETHBTC"}
 ```
 
 # Development
