@@ -1,6 +1,6 @@
 'use strict'
 const fastifyWebSocket = require('fastify-websocket')
-const WsConnection = require('./WsConnection')
+const WsConnection = require('../adapters/WsConnection')
 
 const WS_EVENTS = {
   SUBSCRIBE: 'subscribe',

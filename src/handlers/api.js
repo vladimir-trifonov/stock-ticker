@@ -1,7 +1,7 @@
 'use strict'
 const HttpStatus = require('http-status-codes')
-const { normalizeTicker, normalizeTickers } = require('./utils')
-const { getTicker, getTickers } = require('./apiService')
+const { normalizeTicker, normalizeTickers } = require('../utils')
+const { getTicker, getTickers } = require('../services/apiService')
 
 const API_ERRORS = {
   SYMBOL_INVALID: 'symbol: invalid'

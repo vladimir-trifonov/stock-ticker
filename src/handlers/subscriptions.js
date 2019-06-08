@@ -1,6 +1,6 @@
 'use strict'
-const { normalizeWsTicker } = require('./utils')
-const wsService = require('./wsService')
+const { normalizeWsTicker } = require('../utils')
+const wsService = require('../services/wsService')
 
 const sendData = (connection, data) => connection.send(data)
 const sendInvalidChannel = (connection) => connection.error('Invalid ticker')

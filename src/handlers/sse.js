@@ -1,6 +1,6 @@
 'use strict'
 const HttpStatus = require('http-status-codes')
-const SseConnection = require('./SseConnection')
+const SseConnection = require('../adapters/SseConnection')
 
 const sse = ({ subscribe, unsubscribe }) => {
   return async (fastify, options) => {

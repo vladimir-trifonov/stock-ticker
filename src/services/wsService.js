@@ -1,6 +1,6 @@
 'use strict'
 var WsClient = require('ws-reconnect')
-const error = require('./error')
+const error = require('../error')
 
 const WS_SERVICE_EVENTS = {
   DATA_RECEIVED: 'ws_service:data_received',

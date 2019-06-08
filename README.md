@@ -2,7 +2,7 @@
 
 API that returns stock ticker prices from Bitfinex.
 
-The can be retrieved via REST API, Web Sockets or Server-Sent Events. 
+The data can be retrieved via REST API, Web Sockets or Server-Sent Events. 
 
 # Prerequisites
 - Node.js >= 10.2.0

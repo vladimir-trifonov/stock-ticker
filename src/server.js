@@ -1,10 +1,10 @@
 'use strict'
 const fastify = require('fastify')
 const HttpStatus = require('http-status-codes')
-const api = require('./api')
-const ws = require('./ws')
-const sse = require('./sse')
-const subscriptions = require('./subscriptions')
+const api = require('./handlers/api')
+const ws = require('./handlers/ws')
+const sse = require('./handlers/sse')
+const subscriptions = require('./handlers/subscriptions')
 const error = require('./error')
 
 const start = async ({ events }) => {
