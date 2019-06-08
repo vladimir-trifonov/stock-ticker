@@ -2,7 +2,8 @@
 const { normalizeWsTicker } = require('./utils')
 const wsService = require('./wsService')
 
-const sendInvalidChannel = (connection) => connection.socket.send('Invalid ticker')
+const sendData = (connection, data) => connection.send(data)
+const sendInvalidChannel = (connection) => connection.error('Invalid ticker')
 
 module.exports = (events) => {
   const {
@@ -12,19 +13,18 @@ module.exports = (events) => {
   } = wsService(events)
 
   const subscriptions = Object.create(null)
-  const channels = Object.create(null)
+  let channels = Object.create(null)
 
-  // Register subscriber for ticker's update
-  const register = (connection, channel) => {
+  // Register subscriber for channel's update
+  const subscribe = (connection, channel) => {
     if (!channel || !subscriptions[channel]) subscriptions[channel] = new Set()
 
     subscriptions[channel] = subscriptions[channel].add(connection)
-    // Update channels' listeners
-    onSubscriptionsUpdated()
+    updateChannelsListeners()
   }
 
-  // Unregister subscriber's connection from ticker's update
-  const unregister = (connection, channel) => {
+  // Unregister subscriber's connection from channel's update
+  const unsubscribe = (connection, channel) => {
     if (channel) {
       if (!subscriptions[channel]) return false
       const hasSymbol = !!subscriptions[channel]
@@ -36,8 +36,7 @@ module.exports = (events) => {
       removeSubscriptionFromAll(connection)
     }
 
-    // Update channels' listeners
-    onSubscriptionsUpdated()
+    updateChannelsListeners()
   }
 
   // Remove subscriber's connection
@@ -54,36 +53,39 @@ module.exports = (events) => {
   }
 
   const updateChannelsListeners = (channel) => {
-    if (channels[channel]) {
-      // Remove channel's listener if there are no subscribers
-      if (!subscriptions[channel] || !subscriptions[channel].size) {
-        stopListen(channels[channel])
+    Object.keys(subscriptions).forEach((channel) => {
+      if (channels[channel]) {
+        // Remove channel's listener if there are no subscribers
+        if (!subscriptions[channel] || !subscriptions[channel].size) {
+          stopListen(channels[channel])
+        }
+      } else if (subscriptions[channel] && subscriptions[channel].size) {
+        // Add channel's listener
+        startListen(channel)
       }
-    } else if (subscriptions[channel] && subscriptions[channel].size) {
-      // Add channel's listener
-      startListen(channel)
-    }
-  }
-
-  // Handle subscriptions' updates
-  const onSubscriptionsUpdated = () => {
-    Object.keys(subscriptions).forEach(updateChannelsListeners)
+    })
   }
 
   const getChannelByChanId = (chanId) => Object.keys(channels)
     .find((channel) => channels[channel] === chanId)
 
   const eventHandlers = {
+    [WS_SERVICE_EVENTS.CLIENT_CONNECTED]: () => {
+      updateChannelsListeners()
+    },
+    [WS_SERVICE_EVENTS.CLIENT_DESTROYED]: () => {
+      channels = Object.create(null)
+    },
     // Handle wsService data received
     [WS_SERVICE_EVENTS.DATA_RECEIVED]: ([chanId, data]) => {
       const channel = getChannelByChanId(chanId)
 
-      // Send the ticker's data to the subscribers
+      // Send the channel's data to the subscribers
       const connections = subscriptions[channel]
 
       if (connections && connections.size) {
         const normalized = normalizeWsTicker(channel, data)
-        connections.forEach((connection) => connection.socket.send(JSON.stringify(normalized)))
+        connections.forEach((connection) => sendData(connection, JSON.stringify(normalized)))
       }
     },
     // Handle wsService channel subscribed
@@ -115,7 +117,7 @@ module.exports = (events) => {
   })
 
   return {
-    register,
-    unregister
+    subscribe,
+    unsubscribe
   }
 }

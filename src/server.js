@@ -3,6 +3,8 @@ const fastify = require('fastify')
 const HttpStatus = require('http-status-codes')
 const api = require('./api')
 const ws = require('./ws')
+const sse = require('./sse')
+const subscriptions = require('./subscriptions')
 const error = require('./error')
 
 const start = async ({ events }) => {
@@ -10,9 +12,13 @@ const start = async ({ events }) => {
     throw new Error('server: no port specified')
   }
 
+  // Connect to the Trader's ws service
+  const { subscribe, unsubscribe } = subscriptions(events)
+
   const server = fastify()
   server.register(api) // API
-  server.register(ws(events)) // WebSocket
+  server.register(ws({ subscribe, unsubscribe })) // WebSocket
+  server.register(sse({ subscribe, unsubscribe })) // Server Side Events
 
   // Handle Not Found
   server.get('/*', (request, reply) => {

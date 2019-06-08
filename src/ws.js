@@ -1,6 +1,6 @@
 'use strict'
 const fastifyWebSocket = require('fastify-websocket')
-const subscriptions = require('./wsSubscriptions')
+const WsConnection = require('./WsConnection')
 
 const WS_EVENTS = {
   SUBSCRIBE: 'subscribe',
@@ -11,25 +11,25 @@ const sendWrongFormat = (connection) => connection.socket.send(
   'Wrong format. Example: {"event": "subscribe", "symbol": "tBTCUSD"}'
 )
 
-const ws = (events) => {
-  const { register, unregister } = subscriptions(events)
-
+const ws = ({ subscribe, unsubscribe }) => {
   const eventHandlers = {
     [WS_EVENTS.SUBSCRIBE]: (connection, data) => {
       if (typeof data.symbol !== 'string' || data.symbol === '') {
         return sendWrongFormat(connection)
       }
       // Subscribe connection for tickers' updates
-      register(connection, data.symbol)
+      subscribe(connection, data.symbol)
     },
     [WS_EVENTS.UNSUBSCRIBE]: (connection, parsed) => {
       // Unsubscribe connection from tickers' updates
-      unregister(connection, parsed.symbol)
+      unsubscribe(connection, parsed.symbol)
     }
   }
 
   return async (fastify, options) => {
     const handle = (connection) => {
+      const wsConnection = new WsConnection(connection)
+
       connection.socket.on('message', message => {
         let parsed
         try {
@@ -41,15 +41,15 @@ const ws = (events) => {
         if (parsed) {
           const hasHandler = Object.keys(eventHandlers).includes(parsed.event)
 
-          if (hasHandler) eventHandlers[parsed.event](connection, parsed)
+          if (hasHandler) eventHandlers[parsed.event](wsConnection, parsed)
           else sendWrongFormat(connection)
         }
       })
 
       connection.socket.on('close', message => {
         // Unsubscribe connection from all
-        // updates being registered
-        unregister(connection)
+        // updates being subscribeed
+        unsubscribe(wsConnection)
       })
     }
 

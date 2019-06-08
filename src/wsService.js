@@ -6,7 +6,9 @@ const WS_SERVICE_EVENTS = {
   DATA_RECEIVED: 'ws_service:data_received',
   CHANNEL_SUBSCRIBED: 'ws_service:channel_subscribed',
   CHANNEL_UNSUBSCRIBED: 'ws_service:channel_unsubscribed',
-  CHANNEL_INVALID: 'ws_service:channel_invalid'
+  CHANNEL_INVALID: 'ws_service:channel_invalid',
+  CLIENT_CONNECTED: 'ws_service:client_connected',
+  CLIENT_DESTROYED: 'ws_service:client_destroyed'
 }
 
 const CLIENT_EVENTS = {
@@ -24,7 +26,10 @@ const CLIENT_ERRORS = {
 const CLIENT_CHANNEL_TYPE = 'ticker'
 
 module.exports = (events) => {
-  const client = new WsClient(process.env.BITFINEX_WS_URL)
+  const client = new WsClient(process.env.BITFINEX_WS_URL, {
+    retryCount: 20,
+    reconnectInterval: 10
+  })
   client.start()
 
   // On new message from the Trader
@@ -40,6 +45,14 @@ module.exports = (events) => {
     if (parsed) {
       handleClientMessage(parsed, msg)
     }
+  })
+
+  client.on('connect', () => {
+    events.emit(WS_SERVICE_EVENTS.CLIENT_CONNECTED)
+  })
+
+  client.on('destroyed', () => {
+    events.emit(WS_SERVICE_EVENTS.CLIENT_DESTROYED)
   })
 
   // Handle Trader's message
@@ -68,6 +81,7 @@ module.exports = (events) => {
 
   // Subscribe to Trader ticker's channel
   const startListen = (channel) => {
+    if (!client.isConnected) return
     client.send(JSON.stringify({
       event: CLIENT_EVENTS.SUBSCRIBE,
       channel: CLIENT_CHANNEL_TYPE,
@@ -77,6 +91,7 @@ module.exports = (events) => {
 
   // Unubscribe from Trader ticker's channel
   const stopListen = (chanId) => {
+    if (!client.isConnected) return
     client.send(JSON.stringify({
       event: CLIENT_EVENTS.UNSUBSCRIBE,
       chanId

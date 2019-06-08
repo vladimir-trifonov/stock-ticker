@@ -2,6 +2,8 @@
 
 API that returns stock ticker prices from Bitfinex.
 
+The can be retrieved via REST API, Web Sockets or Server-Sent Events. 
+
 # Prerequisites
 - Node.js >= 10.2.0
 - Docker
@@ -29,6 +31,9 @@ Run your app with:
 ```sh 
 ./server.sh
 ```
+
+## Tickers: 
+tBTCUSD, tLTCUSD, tETHUSD, tRRTUSD, tIOTETH, tOMGBTC, etc...
 
 ## REST
 GET all tickers:
@@ -65,6 +70,18 @@ Example message:
 {"event": "subscribe", "symbol": "tETHBTC"}
 ```
 
+## SSE - Server-Sent Events
+
+GET ticker:
+```
+curl -X GET http://{host}:{port}/event-stream/:ticker
+```
+
+Example:
+```
+curl -X GET http://localhost:3000/event-stream/tETHBTC
+```
+
 # Development
 > This section is for individuals developing the Stock ticker and not intended for end-users.
 
@@ -94,7 +111,7 @@ This project is open source. Please consider forking this project to improve, en
 
 MIT License
 
-Copyright (c) 2018 Vladimir Trifonov
+Copyright (c) 2019 Vladimir Trifonov
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
